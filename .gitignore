@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+data/
+.DS_Store
+
+# 旧版打包产物
+更新包/
+更新包.zip

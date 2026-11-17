@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080908">
+  <meta name="description" content="J.T.C.A A股量化分析工具，基于东方财富 A 股行情、新闻与 J.T.C.A AI 研判的股票研究面板。">
+  <title>J.T.C.A A股量化分析工具</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/styles.css?v=20261111c">
+</head>
+<body>
+  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-refresh" viewBox="0 0 24 24">
+      <path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"></path>
+      <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="M21 21l-4.35-4.35"></path>
+    </symbol>
+    <symbol id="i-x" viewBox="0 0 24 24">
+      <path d="M18 6L6 18M6 6l12 12"></path>
+    </symbol>
+    <symbol id="i-external" viewBox="0 0 24 24">
+      <path d="M12 6h-6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path>
+      <path d="M11 13l9-9M15 4h5v5"></path>
+    </symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24">
+      <path d="M6 9l6 6 6-6"></path>
+    </symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24">
+      <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"></path>
+      <path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z"></path>
+    </symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+      <path d="M16 17l5-5-5-5"></path>
+      <path d="M21 12H9"></path>
+    </symbol>
+  </svg>
+
+  <div class="ambient" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="brand" href="/" id="brandLink" aria-label="J.T.C.A A股量化分析工具首页">
+        <span class="brand-mark" aria-hidden="true"><span>J</span></span>
+        <span class="brand-copy">
+          <span class="brand-name" id="brandName">J.T.C.A</span>
+          <span class="brand-sub" id="brandSub">A股量化分析工具</span>
+        </span>
+      </a>
+      <div class="platform-switch" id="platformSwitch" role="group" aria-label="切换分析平台">
+        <button type="button" class="platform-btn is-active" data-platform="CN" aria-pressed="true">
+          <strong>J.T.C.A</strong><span>A股</span>
+        </button>
+        <button type="button" class="platform-btn" data-platform="HK" aria-pressed="false">
+          <strong>J.T.C.G</strong><span>港股</span>
+        </button>
+      </div>
+      <div class="welcome" id="welcome" data-vip="0">
+        <span class="welcome-text" id="welcomeText">欢迎回来</span>
+        <span class="vip-badge hidden" id="vipBadge"></span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="source-line" title="首选数据源">
+        <span class="status-dot" id="sourceDot"></span>
+        <span id="sourceLabel">东方财富</span>
+      </span>
+      <span class="topbar-divider" aria-hidden="true"></span>
+      <span class="clock" id="clock">--:--:--</span>
+      <span class="user-chip" id="userChip" title="当前账户">
+        <span class="user-dot" aria-hidden="true"></span>
+        <span id="userName">--</span>
+      </span>
+      <button class="icon-btn" id="logoutBtn" type="button" title="退出登录" aria-label="退出登录">
+        <svg class="icon"><use href="#i-logout"></use></svg>
+      </button>
+      <button class="icon-btn" id="refreshAll" type="button" title="刷新全部数据" aria-label="刷新全部数据">
+        <svg class="icon"><use href="#i-refresh"></use></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="ticker-strip" id="marketStrip" aria-label="A 股市场指数">
+    <div class="ticker-label">
+      <span class="kicker" id="marketLabel">A 股市场</span>
+      <span class="ticker-session" id="marketSession">连接中</span>
+    </div>
+    <div class="ticker-track" id="tickerTrack">
+      <div class="ticker-skeleton"></div>
+      <div class="ticker-skeleton"></div>
+      <div class="ticker-skeleton"></div>
+      <div class="ticker-skeleton"></div>
+    </div>
+    <div class="ticker-asof" id="marketAsOf">行情加载中</div>
+  </section>
+
+  <section class="account-strip" aria-label="账户资金概览">
+    <div class="account-label">
+      <span class="kicker">ACCOUNT</span>
+      <span class="account-type" id="accountType">读取中</span>
+    </div>
+    <div class="account-metrics">
+      <div class="account-metric">
+        <span class="account-metric-label">当前账户余额</span>
+        <strong class="account-metric-value" id="accountBalance">--</strong>
+      </div>
+      <div class="account-metric">
+        <span class="account-metric-label">当前持股价值</span>
+        <strong class="account-metric-value" id="holdingValue">--</strong>
+      </div>
+      <div class="account-metric">
+        <span class="account-metric-label">实时收益</span>
+        <strong class="account-metric-value" id="realtimeProfit">--</strong>
+      </div>
+      <div class="account-metric">
+        <span class="account-metric-label">今日收盘收益</span>
+        <strong class="account-metric-value" id="todayProfit">--</strong>
+      </div>
+      <div class="account-metric">
+        <span class="account-metric-label">本月收益</span>
+        <strong class="account-metric-value" id="monthProfit">--</strong>
+      </div>
+      <div class="account-metric">
+        <span class="account-metric-label">累计收益</span>
+        <strong class="account-metric-value" id="totalProfit">--</strong>
+      </div>
+    </div>
+    <div class="account-actions">
+      <button class="btn btn-ghost btn-sm" id="rechargeBtn" type="button">充值</button>
+      <button class="btn btn-ghost btn-sm" id="withdrawBtn" type="button">提现</button>
+    </div>
+  </section>
+
+  <main class="shell">
+    <aside class="rail rail-left" aria-label="自选与研判队列">
+      <div class="rail-head rail-toggle is-collapsed" id="watchToggle" role="button" tabindex="0" aria-expanded="false" aria-controls="watchBody">
+        <div>
+          <span class="kicker">WATCHLIST</span>
+          <h2>自选清单</h2>
+        </div>
+        <div class="rail-head-right">
+          <span class="rail-count" id="watchCount">06</span>
+          <svg class="icon rail-chevron" aria-hidden="true"><use href="#i-chevron"></use></svg>
+        </div>
+      </div>
+
+      <div class="rail-collapse is-collapsed" id="watchBody">
+        <div class="search-box" id="searchBox">
+          <svg class="icon search-icon"><use href="#i-search"></use></svg>
+          <input id="stockSearch" type="text" placeholder="搜索代码或公司名" autocomplete="off" spellcheck="false" aria-label="搜索股票代码或公司名">
+          <kbd>/</kbd>
+          <div class="search-results hidden" id="searchResults" role="listbox"></div>
+        </div>
+
+        <div class="watch-list" id="watchList">
+          <div class="watch-skeleton"></div>
+          <div class="watch-skeleton"></div>
+          <div class="watch-skeleton"></div>
+          <div class="watch-skeleton"></div>
+        </div>
+      </div>
+
+      <div class="rail-block queue-block">
+        <div class="rail-head rail-head-small">
+          <div>
+            <span class="kicker">QUEUE</span>
+            <h3>研判队列</h3>
+          </div>
+          <span class="rail-count" id="queueCount">0/5</span>
+        </div>
+        <div class="queue-chips" id="queueChips">
+          <span class="queue-empty">尚未选择标的</span>
+        </div>
+        <button class="btn btn-primary btn-full" id="analyzeBtn" type="button" disabled>
+          <svg class="icon"><use href="#i-spark"></use></svg>
+          立即研判
+        </button>
+
+      </div>
+
+      <div class="rail-block screener-block" id="screenerBlock">
+        <div class="rail-head rail-head-small rail-toggle is-collapsed" id="screenerToggle" role="button" tabindex="0" aria-expanded="false" aria-controls="screenerBody">
+          <div>
+            <span class="kicker">AUTO SCREENER</span>
+            <h3>自动选股</h3>
+          </div>
+          <div class="rail-head-right">
+            <span class="rail-count" id="screenBadge">AI</span>
+            <svg class="icon rail-chevron" aria-hidden="true"><use href="#i-chevron"></use></svg>
+          </div>
+        </div>
+        <div class="rail-collapse is-collapsed" id="screenerBody">
+          <label class="screener-label" for="capitalInput">最低入股资金（元）</label>
+          <div class="screener-input">
+            <input id="capitalInput" type="number" min="200" step="100" value="200" inputmode="numeric" aria-label="最低入股资金">
+            <button class="btn btn-primary" id="screenBtn" type="button">
+              <svg class="icon"><use href="#i-spark"></use></svg>
+              自动选股
+            </button>
+          </div>
+          <p class="screener-hint">AI 先按资金筛选候选，再结合近一月走势与舆情优化配置，结果自动载入组合情报。</p>
+          <div class="screener-status hidden" id="screenerStatus" role="status" aria-live="polite"></div>
+          <div class="screener-result hidden" id="screenerResult"></div>
+          <div class="auto-trade">
+            <button class="btn btn-primary btn-full" id="autoTradeBtn" type="button" disabled>一键自动交易</button>
+            <p class="auto-trade-notice hidden" id="simulatedNotice">该账号为模拟账号，只能进行模拟交易，如需开通真实交易账户，请联系管理员</p>
+            <div class="screener-status hidden" id="autoTradeStatus" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rail-block positions-block" id="positionsBlock">
+        <div class="rail-head rail-head-small rail-toggle is-collapsed" id="positionsToggle" role="button" tabindex="0" aria-expanded="false" aria-controls="positionBody">
+          <div>
+            <span class="kicker">HOLDINGS</span>
+            <h3>持仓列表</h3>
+          </div>
+          <div class="rail-head-right">
+            <span class="rail-count" id="positionCount">0</span>
+            <svg class="icon rail-chevron" aria-hidden="true"><use href="#i-chevron"></use></svg>
+          </div>
+        </div>
+        <div class="rail-collapse is-collapsed" id="positionBody">
+          <div class="position-list" id="positionList">
+            <p class="position-empty">读取中</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="rail-block ai-watch-block" id="aiWatchBlock">
+        <div class="rail-head rail-head-small rail-toggle is-collapsed" id="aiWatchToggle" role="button" tabindex="0" aria-expanded="false" aria-controls="aiWatchBody">
+          <div>
+            <span class="kicker">AI MONITOR</span>
+            <h3>AI 盯盘</h3>
+          </div>
+          <div class="rail-head-right">
+            <span class="rail-count" id="aiWatchBadge">关闭</span>
+            <svg class="icon rail-chevron" aria-hidden="true"><use href="#i-chevron"></use></svg>
+          </div>
+        </div>
+        <div class="rail-collapse is-collapsed" id="aiWatchBody">
+          <div class="ai-watch-switch-row">
+            <div>
+              <span class="ai-watch-switch-title">开启 AI 盯盘</span>
+              <span class="ai-watch-switch-hint">后端每 30 分钟自动分析并抛售</span>
+            </div>
+            <label class="switch" for="aiWatchSwitch">
+              <input id="aiWatchSwitch" type="checkbox" role="switch" aria-label="开启 AI 盯盘">
+              <span class="switch-track" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="ai-watch-strategy">
+            <div class="ai-watch-strategy-head">
+              <span>投资策略</span>
+              <span class="ai-watch-strategy-label" id="aiWatchStrategyLabel">均衡</span>
+            </div>
+            <input class="ai-watch-range" id="aiWatchStrategy" type="range" min="0" max="100" step="1" value="50" aria-label="投资策略，从防御到激进">
+            <div class="ai-watch-scale" aria-hidden="true">
+              <span>防御</span>
+              <span>均衡</span>
+              <span>激进</span>
+            </div>
+          </div>
+          <p class="screener-hint">开启后由后端常驻盯盘进程每 30 分钟评估一次，按最新行情自动卖出，无需手动确认。</p>
+          <div class="screener-status hidden" id="aiWatchStatus" role="status" aria-live="polite"></div>
+          <div class="ai-watch-result hidden" id="aiWatchResult"></div>
+        </div>
+      </div>
+
+      <div class="rail-foot">
+        <span>行情首选 东方财富</span>
+        <span>备用源自动切换</span>
+      </div>
+    </aside>
+
+    <section class="workspace" aria-label="组合行情与分析">
+      <header class="workspace-head">
+        <div class="workspace-title">
+          <span class="kicker">PORTFOLIO INTELLIGENCE</span>
+          <h1>组合情报</h1>
+          <p id="workspaceMeta">正在读取配置与行情...</p>
+        </div>
+        <div class="workspace-actions">
+          <span class="status-chip" id="analysisState">
+            <span class="status-dot"></span>
+            <span id="analysisStateText">等待研判</span>
+          </span>
+          <button class="btn btn-primary hidden" id="manualBuyBtn" type="button">入手</button>
+          <div class="position-actions hidden" id="positionActions">
+            <button class="btn btn-ghost close-position-btn" id="closePositionBtn" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+              一键平仓
+            </button>
+            <div class="partial-sell">
+              <input class="partial-sell-input" id="partialSellShares" type="number" min="100" step="100" inputmode="numeric" placeholder="100 的倍数" title="卖出股数需为 100 的整数倍（一手为 100 股）" aria-label="部分卖出股数，必须为 100 的整数倍">
+              <button class="btn btn-ghost" id="partialSellBtn" type="button">部分卖出</button>
+            </div>
+          </div>
+          <button class="btn btn-ghost" id="refreshSelection" type="button">
+            <svg class="icon"><use href="#i-refresh"></use></svg>
+            刷新数据
+          </button>
+        </div>
+      </header>
+
+      <div class="notice hidden" id="portfolioNotice" role="status"></div>
+
+      <section class="focus-panel" aria-label="价格图表">
+        <div class="symbol-tabs" id="symbolTabs" role="tablist" aria-label="已选标的"></div>
+
+        <div class="focus-top">
+          <div class="focus-identity">
+            <div class="focus-symbol-line">
+              <span class="focus-symbol" id="activeSymbol">--</span>
+              <span class="focus-exchange" id="activeExchange"></span>
+            </div>
+            <div class="focus-name" id="activeName">选择标的后加载</div>
+          </div>
+          <div class="focus-quote">
+            <div class="focus-price" id="activePrice">--</div>
+            <div class="focus-change" id="activeChange">--</div>
+          </div>
+          <div class="focus-controls">
+            <div class="segmented" id="rangeSwitch" role="group" aria-label="时间范围">
+              <button type="button" data-range="DAY">今日</button>
+              <button type="button" data-range="WEEK">本周</button>
+              <button type="button" data-range="MONTH">近1月</button>
+              <button type="button" data-range="3M">三月</button>
+              <button type="button" data-range="6M" class="is-active">六月</button>
+              <button type="button" data-range="YEAR">今年</button>
+            </div>
+            <div class="segmented segmented-quiet" id="chartModeSwitch" role="group" aria-label="图表类型">
+              <button type="button" data-mode="candle" class="is-active">K 线</button>
+              <button type="button" data-mode="line">走势</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="quote-meta" id="quoteMeta">
+          <span>行情加载中</span>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-loading" id="chartLoading">
+            <div class="scan-line"></div>
+            <span>正在装载两年日线</span>
+          </div>
+          <div class="chart" id="chart" role="img" aria-label="股票价格走势图"></div>
+        </div>
+
+        <div class="chart-footer">
+          <div class="ma-legend">
+            <span><i class="legend-line legend-ma20"></i>MA20 <b id="ma20Value">--</b></span>
+            <span><i class="legend-line legend-ma50"></i>MA50 <b id="ma50Value">--</b></span>
+            <span><i class="legend-block legend-up"></i>上涨 <b id="upDays">--</b></span>
+            <span><i class="legend-block legend-down"></i>下跌 <b id="downDays">--</b></span>
+          </div>
+          <button class="text-btn" id="toggleTable" type="button" aria-expanded="false">查看数据表</button>
+        </div>
+        <div class="data-table hidden" id="dataTableWrap">
+          <div class="data-table-scroll">
+            <table id="dataTable">
+              <thead>
+                <tr><th>日期</th><th>开盘</th><th>最高</th><th>最低</th><th>收盘</th><th>成交量</th></tr>
+              </thead>
+              <tbody id="dataTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="metrics-row" id="metricsRow" aria-label="关键指标">
+        <div class="metric-cell skeleton-cell"></div>
+        <div class="metric-cell skeleton-cell"></div>
+        <div class="metric-cell skeleton-cell"></div>
+        <div class="metric-cell skeleton-cell"></div>
+        <div class="metric-cell skeleton-cell"></div>
+        <div class="metric-cell skeleton-cell"></div>
+      </section>
+
+      <section class="news-section" aria-label="新闻流">
+        <div class="section-head">
+          <div>
+            <span class="kicker">NEWS TAPE</span>
+            <h2>近 30 天新闻</h2>
+            <p id="newsMeta">等待标的加载</p>
+          </div>
+          <div class="filter-row" id="newsFilter"></div>
+        </div>
+        <div class="news-list" id="newsList">
+          <div class="news-skeleton"></div>
+          <div class="news-skeleton"></div>
+          <div class="news-skeleton"></div>
+        </div>
+        <button class="btn btn-ghost news-more hidden" id="newsMore" type="button">加载更多</button>
+      </section>
+    </section>
+
+    <aside class="ai-panel" id="aiPanel" aria-label="AI 研判">
+      <header class="ai-head">
+        <div>
+          <span class="kicker">MODEL READOUT</span>
+          <h2>AI 研判</h2>
+        </div>
+        <span class="model-pill"><span class="model-pulse"></span><span id="modelName">J.T.C.A AI</span></span>
+      </header>
+      <div class="ai-toolbar">
+        <span id="aiUpdated">尚未生成</span>
+        <button class="text-btn" id="reanalyzeBtn" type="button" disabled>重新研判</button>
+      </div>
+      <div class="ai-content" id="aiContent" aria-live="polite">
+        <div class="ai-empty">
+          <svg class="ai-empty-icon"><use href="#i-spark"></use></svg>
+          <h3>等待选择标的</h3>
+          <p>勾选左侧自选股后，系统会自动拉取两年行情，并把近一个月价格与新闻送入模型研判。</p>
+          <div class="ai-empty-rules">
+            <span>条件式预测</span>
+            <span>新闻交叉验证</span>
+            <span>置信度标注</span>
+          </div>
+        </div>
+      </div>
+      <footer class="ai-foot">
+        <span id="aiMetaLine">AI 生成内容不构成投资建议</span>
+      </footer>
+    </aside>
+  </main>
+
+  <footer class="site-foot">
+    <div>
+      <span class="foot-brand" id="footBrand">J.T.C.A A股量化分析工具</span>
+      <span id="footSource">行情与新闻来自东方财富、腾讯财经等公开接口，必要时自动切换备用源。</span>
+    </div>
+    <div class="foot-right">
+      <span>行情可能延迟</span>
+      <span>AI 输出仅供研究</span>
+    </div>
+  </footer>
+
+  <div class="modal-backdrop hidden" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="contactTitle" aria-hidden="true">
+    <div class="modal-card">
+      <h3 id="contactTitle">联系客服</h3>
+      <p class="modal-text">请联系客服，微信号：CJTqmkjkj</p>
+      <button class="btn btn-primary btn-sm" id="contactClose" type="button">知道了</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="closePositionModal" role="dialog" aria-modal="true" aria-labelledby="closePositionTitle" aria-hidden="true">
+    <div class="modal-card">
+      <h3 id="closePositionTitle">一键平仓</h3>
+      <p class="modal-text" id="closePositionText">确定卖出该股票的全部持仓吗？</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="closePositionCancel" type="button">取消</button>
+        <button class="btn btn-danger btn-sm" id="closePositionConfirm" type="button">确认平仓</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="manualBuyModal" role="dialog" aria-modal="true" aria-labelledby="manualBuyTitle" aria-hidden="true">
+    <div class="modal-card modal-card-wide">
+      <h3 id="manualBuyTitle">自选入手</h3>
+      <p class="modal-text" id="manualBuyHint">选择要买入的自选股并填写股数，A 股按手交易（100 股为一手）。</p>
+      <div class="buy-list" id="manualBuyList"></div>
+      <p class="buy-summary" id="manualBuySummary"></p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="manualBuyCancel" type="button">取消</button>
+        <button class="btn btn-primary" id="manualBuyConfirm" type="button">确认入手</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="/static/vendor/echarts.min.js"></script>
+  <script src="/static/app.js?v=20261111c"></script>
+</body>
+</html>

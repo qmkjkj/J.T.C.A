@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080908">
+  <meta name="robots" content="noindex">
+  <title>管理后台 · J.T.C.A</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/auth.css">
+</head>
+<body class="admin-body">
+  <div class="ambient" aria-hidden="true"></div>
+
+  <section class="admin-login-wrap hidden" id="adminLoginView">
+    <section class="auth-card">
+      <header class="auth-head">
+        <span class="auth-logo" aria-hidden="true">J</span>
+        <div>
+          <h1>管理后台</h1>
+          <p>J.T.C.A · Admin</p>
+        </div>
+      </header>
+      <form class="auth-form" id="adminLoginForm" novalidate>
+        <label class="field" for="adminUsername">
+          <span>后台账号</span>
+          <input id="adminUsername" type="text" autocomplete="username" maxlength="64" placeholder="输入后台账号" required>
+        </label>
+        <label class="field" for="adminPassword">
+          <span>后台密码</span>
+          <input id="adminPassword" type="password" autocomplete="current-password" maxlength="64" placeholder="输入后台密码" required>
+        </label>
+        <div class="auth-error hidden" id="adminLoginError" role="alert"></div>
+        <button class="btn btn-primary btn-full auth-submit" id="adminLoginBtn" type="submit">进入后台</button>
+      </form>
+      <footer class="auth-foot">
+        <span>仅限管理员</span>
+        <a href="/">返回前台</a>
+      </footer>
+    </section>
+  </section>
+
+  <div class="hidden" id="adminApp">
+    <header class="admin-topbar">
+      <div class="admin-brand">
+        <span class="auth-logo" aria-hidden="true">J</span>
+        <span class="admin-brand-copy">
+          <strong>管理后台</strong>
+          <span>J.T.C.A Operations</span>
+        </span>
+      </div>
+      <div class="admin-top-actions">
+        <span class="admin-who" id="adminWho"></span>
+        <a class="btn btn-ghost btn-sm" href="/">前台</a>
+        <button class="btn btn-ghost btn-sm" id="adminLogout" type="button">退出</button>
+      </div>
+    </header>
+
+    <main class="admin-shell">
+      <nav class="admin-nav" aria-label="后台导航">
+        <button type="button" class="is-active" data-view="overview">概览</button>
+        <button type="button" data-view="users">用户管理</button>
+        <button type="button" data-view="logins">登录日志</button>
+        <button type="button" data-view="screens">选股记录</button>
+        <button type="button" data-view="trades">交易记录</button>
+      </nav>
+
+      <section class="admin-views">
+        <section class="admin-view" id="view-overview">
+          <div class="admin-view-head">
+            <div>
+              <h2>概览</h2>
+              <p>账户、会话与自动选股的使用情况</p>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="overviewRefresh" type="button">刷新</button>
+          </div>
+          <div class="stat-grid" id="statGrid">
+            <div class="admin-loading">读取中…</div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>最近登录</h3></div>
+            <div class="table-scroll">
+              <table class="admin-table">
+                <thead>
+                  <tr><th>用户</th><th>IP</th><th>结果</th><th>说明</th><th>时间</th></tr>
+                </thead>
+                <tbody id="recentLogins">
+                  <tr class="empty-row"><td colspan="5">加载中…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-view hidden" id="view-users">
+          <div class="admin-view-head">
+            <div>
+              <h2>用户管理</h2>
+              <p>创建、启用、停用或删除前台账户</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="toolbar">
+                <input type="text" id="userSearch" placeholder="搜索用户名" maxlength="64" aria-label="搜索用户名">
+                <button class="btn btn-ghost btn-sm" id="userSearchBtn" type="button">搜索</button>
+              </div>
+              <form class="toolbar" id="createUserForm">
+                <input type="text" id="newUsername" placeholder="新用户名" maxlength="64" aria-label="新用户名" required>
+                <input type="password" id="newPassword" placeholder="初始密码" maxlength="64" aria-label="初始密码" required>
+                <select id="newUserMode" class="mode-select" aria-label="账号类型">
+                  <option value="1" selected>模拟交易账号</option>
+                  <option value="0">真实交易账号</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="createUserBtn" type="submit">创建用户</button>
+              </form>
+            </div>
+            <div class="table-scroll">
+              <table class="admin-table">
+                <thead>
+                  <tr><th>ID</th><th>用户名</th><th>会员</th><th>余额（元）</th><th>账号类型</th><th>状态</th><th>在线会话</th><th>注册时间</th><th>最近登录</th><th>操作</th></tr>
+                </thead>
+                <tbody id="usersBody">
+                  <tr class="empty-row"><td colspan="10">加载中…</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pager">
+              <span id="usersPagerInfo">—</span>
+              <div class="pager-actions">
+                <button class="btn btn-ghost btn-sm" id="usersPrev" type="button">上一页</button>
+                <button class="btn btn-ghost btn-sm" id="usersNext" type="button">下一页</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-view hidden" id="view-logins">
+          <div class="admin-view-head">
+            <div>
+              <h2>登录日志</h2>
+              <p>最近的前台与后台登录记录</p>
+            </div>
+            <label class="check">
+              <input type="checkbox" id="onlyFailed">
+              仅看失败
+            </label>
+          </div>
+          <div class="panel">
+            <div class="table-scroll">
+              <table class="admin-table">
+                <thead>
+                  <tr><th>时间</th><th>用户</th><th>IP</th><th>结果</th><th>说明</th></tr>
+                </thead>
+                <tbody id="loginsBody">
+                  <tr class="empty-row"><td colspan="5">加载中…</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pager">
+              <span id="loginsPagerInfo">—</span>
+              <div class="pager-actions">
+                <button class="btn btn-ghost btn-sm" id="loginsPrev" type="button">上一页</button>
+                <button class="btn btn-ghost btn-sm" id="loginsNext" type="button">下一页</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-view hidden" id="view-screens">
+          <div class="admin-view-head">
+            <div>
+              <h2>选股记录</h2>
+              <p>前台自动选股的资金与配置结果</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="table-scroll">
+              <table class="admin-table">
+                <thead>
+                  <tr><th>时间</th><th>用户</th><th>资金</th><th>候选</th><th>配置</th><th>摘要</th></tr>
+                </thead>
+                <tbody id="screensBody">
+                  <tr class="empty-row"><td colspan="6">加载中…</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pager">
+              <span id="screensPagerInfo">—</span>
+              <div class="pager-actions">
+                <button class="btn btn-ghost btn-sm" id="screensPrev" type="button">上一页</button>
+                <button class="btn btn-ghost btn-sm" id="screensNext" type="button">下一页</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-view hidden" id="view-trades">
+          <div class="admin-view-head">
+            <div>
+              <h2>交易记录</h2>
+              <p>一键自动交易写入的持仓、成本与实时收益</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="table-scroll">
+              <table class="admin-table">
+                <thead>
+                  <tr><th>时间</th><th>用户</th><th>类型</th><th>投入</th><th>市值</th><th>收益</th><th>状态</th><th>持仓</th></tr>
+                </thead>
+                <tbody id="tradesBody">
+                  <tr class="empty-row"><td colspan="8">加载中…</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pager">
+              <span id="tradesPagerInfo">—</span>
+              <div class="pager-actions">
+                <button class="btn btn-ghost btn-sm" id="tradesPrev" type="button">上一页</button>
+                <button class="btn btn-ghost btn-sm" id="tradesNext" type="button">下一页</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="/qmkjkj/admin.js"></script>
+</body>
+</html>

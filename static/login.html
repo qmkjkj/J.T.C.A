@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080908">
+  <meta name="robots" content="noindex">
+  <title>登录 · J.T.C.A A股量化分析工具</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/auth.css">
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+
+  <main class="auth-shell">
+    <section class="auth-card">
+      <header class="auth-head">
+        <span class="auth-logo" aria-hidden="true">J</span>
+        <div>
+          <h1>J.T.C.A</h1>
+          <p>A股量化分析工具 · 账户</p>
+        </div>
+      </header>
+
+      <div class="auth-tabs" role="tablist" aria-label="登录或注册">
+        <button class="auth-tab is-active" id="tabLogin" data-mode="login" type="button" role="tab" aria-selected="true">登录</button>
+        <button class="auth-tab" id="tabRegister" data-mode="register" type="button" role="tab" aria-selected="false">注册</button>
+      </div>
+
+      <form class="auth-form" id="authForm" novalidate>
+        <label class="field" for="username">
+          <span>用户名</span>
+          <input id="username" name="username" type="text" autocomplete="username" maxlength="64" placeholder="输入用户名" required>
+        </label>
+        <label class="field" for="password">
+          <span>密码</span>
+          <input id="password" name="password" type="password" autocomplete="current-password" maxlength="64" placeholder="输入密码" required>
+        </label>
+        <p class="field-note" id="passwordHint">密码长度 6-64 位</p>
+        <div class="auth-error hidden" id="authError" role="alert"></div>
+        <button class="btn btn-primary btn-full auth-submit" id="authSubmit" type="submit">登录</button>
+      </form>
+
+      <footer class="auth-foot">
+        <span>行情数据来自公开接口</span>
+        <span>AI 输出仅供研究</span>
+      </footer>
+    </section>
+    <p class="auth-disclaimer">行情与新闻来自公开数据接口，可能存在延迟或缺失。</p>
+  </main>
+
+  <script src="/static/login.js"></script>
+</body>
+</html>
